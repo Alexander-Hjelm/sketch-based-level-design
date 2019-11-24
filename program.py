@@ -4,12 +4,17 @@ import os
 import cv2
 import random
 import pickle
+import tensorflow
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
 
 DATADIR = "dataset/PetImages"
 CATEGORIES = ["Dog", "Cat"]
 IMG_SIZE = 64
 DEBUG = False
 DEBUG_MAX_IMG_COUNT = 100
+
+print("==================")
 
 # Load training data
 def create_training_data():
@@ -66,3 +71,5 @@ def train_nn():
 # MAIN PROGRAM
 #read_and_save_training_data()
 train_nn()
+
+print("Program terminated successfully")
