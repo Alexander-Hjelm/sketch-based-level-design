@@ -1,3 +1,4 @@
+import sys
 import numpy
 import matplotlib.pyplot as pyplot
 import os
@@ -64,12 +65,20 @@ def read_and_save_training_data():
     pickle_out.close()
 
 def train_nn():
-    pass
+    print("Started CNN training procedure on data")
 
 
 
 # MAIN PROGRAM
-#read_and_save_training_data()
-train_nn()
+if len(sys.argv) > 1:
+    arg = sys.argv[1]
+    if arg == "-r":
+        read_and_save_training_data()
+    elif arg == "-t":
+        train_nn()
+    else:
+        print("1st argument not recognized")
+else:
+    print("No argument supplied!")
 
 print("Program terminated successfully")
