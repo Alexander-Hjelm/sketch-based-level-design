@@ -27,6 +27,7 @@ COLOR_BG = "white"
 PEN_WIDTH = 5
 mouse_x_old = None
 mouse_y_old = None
+painting_frame = None
 
 print("==================")
 
@@ -140,6 +141,8 @@ def predict_img(filepath):
 
 def on_painting_window_press(event):
     pass
+    #painting_frame.add_line(1, 1, 200, 200)
+    #painting_frame.redrawUI()
 
 def on_painting_window_release(event):
     pass
@@ -147,34 +150,52 @@ def on_painting_window_release(event):
 def on_painting_window_leave(event):
     pass
 
-class Example(Frame):
+class PaintingFrame(Frame):
+
+    lines = []
+    rects = []
+    canvas = None
 
     def __init__(self):
         super().__init__()
 
         self.initUI()
 
-
     def initUI(self):
 
         self.master.title("Lines")
         self.pack(fill=BOTH, expand=1)
 
-        canvas = Canvas(self)
+        self.canvas = Canvas(self)
 
-        canvas.bind("<Button-1>", on_painting_window_press)
-        canvas.bind("<ButtonRelease-1>", on_painting_window_release)
-        canvas.bind("<Leave>", on_painting_window_leave)
+        self.canvas.bind("<Button-1>", on_painting_window_press)
+        self.canvas.bind("<ButtonRelease-1>", on_painting_window_release)
+        self.canvas.bind("<Leave>", on_painting_window_leave)
 
-        canvas.create_line(15, 25, 200, 25)
-        canvas.create_line(300, 35, 300, 200, dash=(4, 2))
-        canvas.create_line(55, 85, 155, 85, 105, 180, 55, 85)
+        self.redrawUI()
 
-        canvas.pack(fill=BOTH, expand=1)
+        self.canvas.pack(fill=BOTH, expand=1)
+    
+    def redrawUI(self):
+        self.canvas.delete("all")
+
+        for line in self.lines:
+           self.canvas.create_line(line[0], line[1], line[2], line[3], width=PEN_WIDTH)
+
+        for rect in self.rects:
+           self.canvas.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline="blue", fill="blue",)
+
+    def add_line(self, x1, y1, x2, y2):
+        self.lines.append([x1, y1, x2, y2])
+        
+    def add_rect(self, x1, y1, x2, y2):
+        self.rects.append([x1, y1, x2, y2])
+
 
 def painting_prompt():
     root = Tk()
-    ex = Example()
+    global painting_frame
+    painting_frame = PaintingFrame()
     root.geometry("400x250+300+300")
     root.attributes('-type', 'dialog')
     root.mainloop()
