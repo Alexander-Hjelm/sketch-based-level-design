@@ -6,19 +6,28 @@ import cv2
 import random
 import pickle
 import tensorflow
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.utils import to_categorical
 
 FSETDIR = "feature_set.pickle"
 LSETDIR = "label_set.pickle"
 DATADIR = "dataset/PetImages"
+MODELDIR = "64x3-CNN.model"
 CATEGORIES = ["Dog", "Cat"]
 IMG_SIZE = 64
 DEBUG = False
 DEBUG_MAX_IMG_COUNT = 100
 
 print("==================")
+
+def prepare_img(filepath):
+    img_array = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
+    resized_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
+    #pyplot.imshow(resized_array, cmap="gray")
+    #pyplot.show()
+    reshaped_array = resized_array.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+    return reshaped_array
 
 # Load training data
 def create_training_data():
@@ -29,12 +38,10 @@ def create_training_data():
         img_count = 0
         for img in os.listdir(path):
             try:
-                img_array = cv2.imread(os.path.join(path, img), cv2.IMREAD_GRAYSCALE)
-                resized_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
-                training_data.append([resized_array, class_num])
+                filepath = os.path.join(path, img)
+                prepared_img = prepare_img(filepath)
+                training_data.append([prepared_img, class_num])
                 img_count = img_count + 1;
-                #pyplot.imshow(resized_array, cmap="gray")
-                #pyplot.show()
             except Exception as e:
                 print("Broken image: " + img)
 
@@ -108,6 +115,19 @@ def train_nn():
     # TODO: Learn how to use tensorflow-gpu and tensorboard
     model.fit(feature_set, label_set, batch_size=32, epochs=3, validation_split=0.1)
 
+    # Save model
+    model.save(MODELDIR)
+
+def predict_img(filepath):
+    prepared_img = prepare_img(filepath)
+
+    # Load model
+    model = load_model(MODELDIR)
+
+    # Predict
+    p = model.predict_classes(prepared_img)
+
+    print(CATEGORIES[int(p[0][0])])
 
 # MAIN PROGRAM
 if len(sys.argv) > 1:
@@ -116,6 +136,11 @@ if len(sys.argv) > 1:
         read_and_save_training_data()
     elif arg == "-t":
         train_nn()
+    elif arg == "-p":
+        if len(sys.argv) > 2:
+            predict_img(sys.argv[2])
+        else:
+            print("Argument -v requires a path to an image")
     else:
         print("1st argument not recognized")
 else:
