@@ -139,6 +139,9 @@ def predict_img(filepath):
 
     print(CATEGORIES[int(p[0][0])])
 
+def on_painting_window_motion(event):
+    pass
+
 def on_painting_window_press(event):
     pass
     #painting_frame.add_line(1, 1, 200, 200)
@@ -171,6 +174,7 @@ class PaintingFrame(Frame):
         self.canvas.bind("<Button-1>", on_painting_window_press)
         self.canvas.bind("<ButtonRelease-1>", on_painting_window_release)
         self.canvas.bind("<Leave>", on_painting_window_leave)
+        self.canvas.bind("<B1-Motion>", on_painting_window_motion)
 
         self.redrawUI()
 
