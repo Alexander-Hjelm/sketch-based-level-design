@@ -141,28 +141,39 @@ def predict_img(filepath):
     print(CATEGORIES[int(p[0][0])])
 
 def on_painting_window_motion(event):
-    global mouse_x_old
-    global mouse_y_old
+    if currently_painting:
+        global mouse_x_old
+        global mouse_y_old
 
-    mouse_x = event.x
-    mouse_y = event.y
-    painting_frame.add_line(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
-    painting_frame.redrawUI()
-    
-    mouse_x_old = mouse_x
-    mouse_y_old = mouse_y
+        mouse_x = event.x
+        mouse_y = event.y
+        painting_frame.add_line(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
+        painting_frame.redrawUI()
+        
+        mouse_x_old = mouse_x
+        mouse_y_old = mouse_y
 
 def on_painting_window_press(event):
     global mouse_x_old
     global mouse_y_old
+    global currently_painting
     mouse_x_old = event.x
     mouse_y_old = event.y
+    currently_painting = True
 
 def on_painting_window_release(event):
-    pass
+    global painting_frame
+    global currently_painting
+    painting_frame.clear_lines()
+    painting_frame.redrawUI()
+    currently_painting = False
 
 def on_painting_window_leave(event):
-    pass
+    global painting_frame
+    global currently_painting
+    painting_frame.clear_lines()
+    painting_frame.redrawUI()
+    currently_painting = False
 
 class PaintingFrame(Frame):
 
@@ -205,6 +216,9 @@ class PaintingFrame(Frame):
         
     def add_rect(self, x1, y1, x2, y2):
         self.rects.append([x1, y1, x2, y2])
+
+    def clear_lines(self):
+        self.lines.clear()
 
 
 def painting_prompt():
