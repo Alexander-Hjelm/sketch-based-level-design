@@ -29,6 +29,7 @@ mouse_x_old = None
 mouse_y_old = None
 painting_frame = None
 currently_painting = False
+painting_mode = "drawing_line"
 
 print("==================")
 
@@ -141,14 +142,19 @@ def predict_img(filepath):
     print(CATEGORIES[int(p[0][0])])
 
 def on_painting_window_motion(event):
+    global currently_painting
+    global painting_mode
+
     if currently_painting:
         global mouse_x_old
         global mouse_y_old
 
         mouse_x = event.x
         mouse_y = event.y
-        painting_frame.add_line(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
-        painting_frame.redrawUI()
+
+        if painting_mode == "drawing_line":
+            painting_frame.add_line(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
+            painting_frame.redrawUI()
         
         mouse_x_old = mouse_x
         mouse_y_old = mouse_y
@@ -157,23 +163,43 @@ def on_painting_window_press(event):
     global mouse_x_old
     global mouse_y_old
     global currently_painting
+    global painting_frame
+    global painting_mode
     mouse_x_old = event.x
     mouse_y_old = event.y
+    if painting_mode == "drawing_line":
+        painting_frame.clear_lines()
+        painting_frame.redrawUI()
     currently_painting = True
 
 def on_painting_window_release(event):
-    global painting_frame
     global currently_painting
-    painting_frame.clear_lines()
-    painting_frame.redrawUI()
     currently_painting = False
 
 def on_painting_window_leave(event):
     global painting_frame
     global currently_painting
-    painting_frame.clear_lines()
-    painting_frame.redrawUI()
+    global painting_mode
+    if painting_mode == "drawing_line":
+        painting_frame.clear_lines()
+        painting_frame.redrawUI()
     currently_painting = False
+
+def on_painting_window_return(event):
+    global painting_mode
+    global painting_frame
+    global currently_painting
+    if(painting_mode == "drawing_line"):
+        print("Painting mode is now rectangle")
+        painting_mode = "drawing_rectangle"
+    elif(painting_mode == "drawing_rectangle"):
+        print("Painting mode is now line")
+        painting_mode = "drawing_line"
+        painting_frame.clear_lines()
+        painting_frame.clear_rects()
+        painting_frame.redrawUI()
+    currently_painting = False
+
 
 class PaintingFrame(Frame):
 
@@ -197,6 +223,7 @@ class PaintingFrame(Frame):
         self.canvas.bind("<ButtonRelease-1>", on_painting_window_release)
         self.canvas.bind("<Leave>", on_painting_window_leave)
         self.canvas.bind("<B1-Motion>", on_painting_window_motion)
+        self.canvas.bind("<KeyPress>", on_painting_window_return)
 
         self.redrawUI()
 
@@ -220,6 +247,8 @@ class PaintingFrame(Frame):
     def clear_lines(self):
         self.lines.clear()
 
+    def clear_rects(self):
+        self.rects.clear()
 
 def painting_prompt():
     root = Tk()
@@ -227,6 +256,7 @@ def painting_prompt():
     painting_frame = PaintingFrame()
     root.geometry("400x250+300+300")
     root.attributes('-type', 'dialog')
+    root.bind("<Return>", on_painting_window_return)
     root.mainloop()
 
     #c = Canvas(width=IMG_SIZE, height=IMG_SIZE)
