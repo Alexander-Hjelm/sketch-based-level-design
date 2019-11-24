@@ -8,7 +8,10 @@ import pickle
 import tensorflow
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.utils import to_categorical
 
+FSETDIR = "feature_set.pickle"
+LSETDIR = "label_set.pickle"
 DATADIR = "dataset/PetImages"
 CATEGORIES = ["Dog", "Cat"]
 IMG_SIZE = 64
@@ -56,17 +59,54 @@ def read_and_save_training_data():
     # Conversion of feature set to numpy array, necessary for Keras
     feature_set = numpy.array(feature_set).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
 
-    pickle_out = open("feature_set.pickle", "wb")
+    pickle_out = open(FSETDIR, "wb")
     pickle.dump(feature_set, pickle_out)
     pickle_out.close()
 
-    pickle_out = open("label_set.pickle", "wb")
+    pickle_out = open(LSETDIR, "wb")
     pickle.dump(label_set, pickle_out)
     pickle_out.close()
 
 def train_nn():
     print("Started CNN training procedure on data")
 
+    feature_set = pickle.load(open(FSETDIR, "rb"))
+    label_set = pickle.load(open(LSETDIR, "rb"))
+
+    #label_set = to_categorical(label_set)
+
+    # Scale (normalize) data
+    feature_set = feature_set/255.0
+
+    # Build CNN model
+    model = Sequential()
+    # Conv2D, 64 filters, 3x3 filter size, same input size as images
+    model.add(Conv2D(64, (3,3), input_shape = feature_set.shape[1:]))
+    # Activation layer, rectify linear activation
+    model.add(Activation("relu"))
+    # Pooling layer, max pooling2D
+    model.add(MaxPooling2D(pool_size=(2,2)))
+
+    # 2nd hidden layer, does not require input shape
+    model.add(Conv2D(64, (3,3)))
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+
+    # Dense layer, requires 1D input so flatten the dataset first
+    model.add(Flatten())
+    model.add(Dense(64))
+    model.add(Activation("sigmoid"))
+    
+    # Output layer
+    model.add(Dense(1))
+    model.add(Activation("sigmoid"))
+
+    model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+    # Fit the model to the training data
+    # Note: model will converge nicely after 10 epochs, use that or more in the final program
+    # TODO: Learn how to use tensorflow-gpu and tensorboard
+    model.fit(feature_set, label_set, batch_size=32, epochs=3, validation_split=0.1)
 
 
 # MAIN PROGRAM
