@@ -155,9 +155,15 @@ def on_painting_window_motion(event):
         if painting_mode == "drawing_line":
             painting_frame.add_line(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
             painting_frame.redrawUI()
+
+            mouse_x_old = mouse_x
+            mouse_y_old = mouse_y
+
+        if painting_mode == "drawing_rectangle":
+            painting_frame.clear_rects()
+            painting_frame.add_rect(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
+            painting_frame.redrawUI()
         
-        mouse_x_old = mouse_x
-        mouse_y_old = mouse_y
 
 def on_painting_window_press(event):
     global mouse_x_old
