@@ -28,6 +28,7 @@ PEN_WIDTH = 5
 mouse_x_old = None
 mouse_y_old = None
 painting_frame = None
+currently_painting = False
 
 print("==================")
 
@@ -140,12 +141,22 @@ def predict_img(filepath):
     print(CATEGORIES[int(p[0][0])])
 
 def on_painting_window_motion(event):
-    pass
+    global mouse_x_old
+    global mouse_y_old
+
+    mouse_x = event.x
+    mouse_y = event.y
+    painting_frame.add_line(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
+    painting_frame.redrawUI()
+    
+    mouse_x_old = mouse_x
+    mouse_y_old = mouse_y
 
 def on_painting_window_press(event):
-    pass
-    #painting_frame.add_line(1, 1, 200, 200)
-    #painting_frame.redrawUI()
+    global mouse_x_old
+    global mouse_y_old
+    mouse_x_old = event.x
+    mouse_y_old = event.y
 
 def on_painting_window_release(event):
     pass
