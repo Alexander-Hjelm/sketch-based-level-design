@@ -1,4 +1,5 @@
 import sys
+import time
 from tkinter import Tk, Canvas, Frame, BOTH
 import pyscreenshot
 import numpy
@@ -207,8 +208,10 @@ def on_painting_window_return(event):
         painting_frame.clear_rects()
         painting_frame.redrawUI()
 
+        # Save data
+        data_id = int(round(time.time()*1000))
         # Take screenshot
-        painting_frame.take_screenshot()
+        painting_frame.take_screenshot(data_id)
 
         # Clear lines and redraw
         painting_frame.clear_lines()
@@ -262,13 +265,14 @@ class PaintingFrame(Frame):
     def clear_rects(self):
         self.rects.clear()
 
-    def take_screenshot(self):
+    def take_screenshot(self, file_id):
         global root
 
         self.canvas.update()
 
         img = pyscreenshot.grab(bbox=(root.winfo_x(), root.winfo_y(), root.winfo_x() + root.winfo_width(), root.winfo_y() + root.winfo_height()))
-        img.save("screen.png")
+        filepath = "dataset/" + str(file_id) + ".png"
+        img.save(filepath)
 
 def painting_prompt():
     global painting_frame
