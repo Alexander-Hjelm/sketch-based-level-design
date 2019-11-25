@@ -32,6 +32,8 @@ painting_frame = None
 currently_painting = False
 root = None
 painting_mode = "drawing_line"
+placed_rect_xy1 = [-1, -1]
+placed_rect_xy2 = [-1, -1]
 
 print("==================")
 
@@ -173,16 +175,25 @@ def on_painting_window_press(event):
     global currently_painting
     global painting_frame
     global painting_mode
+    global placed_rect_xy1
+
     mouse_x_old = event.x
     mouse_y_old = event.y
     if painting_mode == "drawing_line":
         painting_frame.clear_lines()
         painting_frame.redrawUI()
+    elif painting_mode == "drawing_rectangle":
+        placed_rect_xy1 = [event.x, event.y]
     currently_painting = True
 
 def on_painting_window_release(event):
     global currently_painting
+    global painting_mode
+    global placed_rect_xy2
+
     currently_painting = False
+    if painting_mode == "drawing_rectangle":
+        placed_rect_xy2 = [event.x, event.y]
 
 def on_painting_window_leave(event):
     global painting_frame
@@ -197,25 +208,41 @@ def on_painting_window_return(event):
     global painting_mode
     global painting_frame
     global currently_painting
+    global placed_rect_xy1
+    global placed_rect_xy2
     if(painting_mode == "drawing_line"):
         print("Painting mode is now rectangle")
         painting_mode = "drawing_rectangle"
     elif(painting_mode == "drawing_rectangle"):
-        print("Painting mode is now line")
-        painting_mode = "drawing_line"
+        if(placed_rect_xy1[0] == -1 or placed_rect_xy1[1] == -1 or placed_rect_xy2[0] == -1 or placed_rect_xy2[1] == -1):
+            pass
+        else:
+            print("Painting mode is now line")
+            painting_mode = "drawing_line"
 
-        # Clear rects and redraw
-        painting_frame.clear_rects()
-        painting_frame.redrawUI()
+            # Clear rects and redraw
+            painting_frame.clear_rects()
+            painting_frame.redrawUI()
 
-        # Save data
-        data_id = int(round(time.time()*1000))
-        # Take screenshot
-        painting_frame.take_screenshot(data_id)
+            # Save data
+            data_id = int(round(time.time()*1000))
+            # Save rect coords
+            x1 = min(placed_rect_xy1[0], placed_rect_xy2[0])
+            x2 = max(placed_rect_xy1[0], placed_rect_xy2[0])
+            y1 = min(placed_rect_xy1[1], placed_rect_xy2[1])
+            y2 = max(placed_rect_xy1[1], placed_rect_xy2[1])
+            coords_file = open("dataset/{}.txt".format(data_id), "w")
+            coords_file.write("{},{},{},{}".format(x1, y1, x2, y2))
+            coords_file.close()
+            # Take screenshot
+            painting_frame.take_screenshot(data_id)
 
-        # Clear lines and redraw
-        painting_frame.clear_lines()
-        painting_frame.redrawUI()
+            # Clear lines and redraw
+            painting_frame.clear_lines()
+            painting_frame.redrawUI()
+
+            placed_rect_xy1 = [-1, -1]
+            placed_rect_xy2 = [-1, -1]
     currently_painting = False
 
 class PaintingFrame(Frame):
