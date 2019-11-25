@@ -29,6 +29,7 @@ mouse_x_old = None
 mouse_y_old = None
 painting_frame = None
 currently_painting = False
+root = None
 painting_mode = "drawing_line"
 
 print("==================")
@@ -125,7 +126,7 @@ def train_nn():
     # Fit the model to the training data
     # Note: model will converge nicely after 10 epochs, use that or more in the final program
     # TODO: Learn how to use tensorflow-gpu and tensorboard
-    model.fit(feature_set, label_set, batch_size=32, epochs=3, validation_split=0.1)
+    model.fit(feature_set, label_set, batch_size=32, epochs=30, validation_split=0.1)
 
     # Save model
     model.save(MODELDIR)
@@ -201,11 +202,18 @@ def on_painting_window_return(event):
     elif(painting_mode == "drawing_rectangle"):
         print("Painting mode is now line")
         painting_mode = "drawing_line"
-        painting_frame.clear_lines()
+
+        # Clear rects and redraw
         painting_frame.clear_rects()
         painting_frame.redrawUI()
-    currently_painting = False
 
+        # Take screenshot
+        painting_frame.take_screenshot()
+
+        # Clear lines and redraw
+        painting_frame.clear_lines()
+        painting_frame.redrawUI()
+    currently_painting = False
 
 class PaintingFrame(Frame):
 
@@ -237,10 +245,8 @@ class PaintingFrame(Frame):
     
     def redrawUI(self):
         self.canvas.delete("all")
-
         for line in self.lines:
            self.canvas.create_line(line[0], line[1], line[2], line[3], width=PEN_WIDTH)
-
         for rect in self.rects:
            self.canvas.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline="blue", fill="blue",)
 
@@ -256,9 +262,18 @@ class PaintingFrame(Frame):
     def clear_rects(self):
         self.rects.clear()
 
+    def take_screenshot(self):
+        global root
+
+        self.canvas.update()
+
+        img = pyscreenshot.grab(bbox=(root.winfo_x(), root.winfo_y(), root.winfo_x() + root.winfo_width(), root.winfo_y() + root.winfo_height()))
+        img.save("screen.png")
+
 def painting_prompt():
-    root = Tk()
     global painting_frame
+    global root
+    root = Tk()
     painting_frame = PaintingFrame()
     root.geometry("400x250+300+300")
     root.attributes('-type', 'dialog')
