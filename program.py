@@ -212,7 +212,7 @@ def train_feature_extractor_nn(category):
     model.fit(img_set, coord_set, batch_size=32, epochs=3, validation_split=0.1)
 
     # Save model
-    model.save("{}{}-classifier-CNN.model".format(MODELDIR, category))
+    model.save("{}{}-feature-extractor-CNN.model".format(MODELDIR, category))
 
 def train_nn():
     print("Started CNN training procedure on data")
@@ -227,19 +227,23 @@ def predict_img(filepath):
     prepared_img = prepare_img(filepath)
 
     # Load model
-    model = load_model("{}classifier-CNN.model".format(MODELDIR))
+    model_classifier = load_model("{}classifier-CNN.model".format(MODELDIR))
 
-    # Predict
-    p = model.predict(prepared_img)
+    # Predict category
+    p = model_classifier.predict(prepared_img)
 
     m = max(p[0])
     maxindex = numpy.where(p[0]==m)[0][0]
-    #maxindex = p[0].index(m)
-
 
     print(p[0])
     print(maxindex)
     print(CATEGORIES[maxindex])
+
+    # Predict coordinates
+    model_feature_extractor = load_model("{}{}-feature-extractor-CNN.model".format(MODELDIR, CATEGORIES[maxindex]))
+
+    p = model_feature_extractor.predict(prepared_img)
+    print(p)
 
 def on_painting_window_motion(event):
     global currently_painting
