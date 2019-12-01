@@ -16,7 +16,7 @@ from tensorflow.keras.utils import to_categorical
 FSETDIR = "saved-data-sets/feature_set.pickle"
 LSETDIR = "saved-data-sets/label_set.pickle"
 DATADIR = "dataset"
-MODELDIR = "64x3-CNN.model"
+MODELDIR = "trained-models/"
 CATEGORIES = ["Rectangle", "Circle"]
 IMG_SIZE = 64
 DEBUG = False
@@ -105,13 +105,18 @@ def read_and_save_training_data():
         label_set.append(label)
         
         # Store to the correct feature extractor NN
-        coordinate_sets[label].append
+        coordinate_sets[label].append(coords)
+        #for coord in coords:
+        #    coordinate_sets[label].append(coord)
         img_sets[label].append(feature)
 
     # Conversion of feature set to numpy array, necessary for Keras
     feature_set = numpy.array(feature_set).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
-    for img_set in img_sets:
-        img_set = numpy.array(img_set).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+    for i in range(0, len(img_sets)):
+        img_sets[i] = numpy.array(img_sets[i]).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+
+    for i in range(0, len(coordinate_sets)):
+        coordinate_sets[i] = numpy.array(coordinate_sets[i])
 
     # Write classifier training data
     pickle_out = open(FSETDIR, "wb")
@@ -132,19 +137,11 @@ def read_and_save_training_data():
         pickle.dump(coordinate_sets[i], pickle_out)
         pickle_out.close()
 
-
-def train_nn():
-    print("Started CNN training procedure on data")
-
+def train_classifier_nn():
     feature_set = pickle.load(open(FSETDIR, "rb"))
     label_set = pickle.load(open(LSETDIR, "rb"))
 
     #label_set = to_categorical(label_set)
-
-    #TODO: Break out this nn into a separate funciton, classification_nn.
-    #TODO: New funciton for creation of coord_finder_nns, one for each category
-    #TODO: Train the classification_nn 
-    #TODO: Train the coord_finder_nns
 
     # Scale (normalize) data
     feature_set = feature_set/255.0
@@ -176,11 +173,57 @@ def train_nn():
 
     # Fit the model to the training data
     # Note: model will converge nicely after 10 epochs, use that or more in the final program
-    # TODO: Learn how to use tensorflow-gpu and tensorboard
-    model.fit(feature_set, label_set, batch_size=32, epochs=30, validation_split=0.1)
+    model.fit(feature_set, label_set, batch_size=32, epochs=3, validation_split=0.1)
 
     # Save model
-    model.save(MODELDIR)
+    model.save("{}classifier-CNN.model".format(MODELDIR))
+
+def train_feature_extractor_nn(category):
+    img_set = pickle.load(open("saved-data-sets/{}_img.pickle".format(category), "rb"))
+    coord_set = pickle.load(open("saved-data-sets/{}_coord.pickle".format(category), "rb"))
+    out_nodes_count = len(coord_set[0])
+
+    # Scale (normalize) data
+    img_set = img_set/255.0
+
+    # Build CNN model
+    model = Sequential()
+    # Conv2D, 64 filters, 3x3 filter size, same input size as images
+    model.add(Conv2D(64, (3,3), input_shape = img_set.shape[1:]))
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+
+    # 2nd hidden layer, does not require input shape
+    model.add(Conv2D(64, (3,3)))
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+
+    # Dense layer, requires 1D input so flatten the dataset first
+    model.add(Flatten())
+    model.add(Dense(64))
+    model.add(Activation("sigmoid"))
+    
+    # Output layer
+    model.add(Dense(out_nodes_count))
+    model.add(Activation("sigmoid"))
+
+    model.compile(loss="mean_squared_error", optimizer="adam", metrics=["accuracy"])
+
+    # Fit the model to the training data
+    # Note: model will converge nicely after 10 epochs, use that or more in the final program
+    model.fit(img_set, coord_set, batch_size=32, epochs=3, validation_split=0.1)
+
+    # Save model
+    model.save("{}{}-classifier-CNN.model".format(MODELDIR, category))
+
+def train_nn():
+    print("Started CNN training procedure on data")
+
+    train_classifier_nn()
+
+    for c in CATEGORIES:
+        train_feature_extractor_nn(c)
+
 
 def predict_img(filepath):
     prepared_img = prepare_img(filepath)
