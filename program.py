@@ -178,7 +178,7 @@ def train_classifier_nn():
 
     # Fit the model to the training data
     # Note: model will converge nicely after 10 epochs, use that or more in the final program
-    model.fit(feature_set, label_set, batch_size=32, epochs=3, validation_split=0.1)
+    model.fit(feature_set, label_set, batch_size=32, epochs=20, validation_split=0.1)
 
     # Save model
     model.save("{}classifier-CNN.model".format(MODELDIR))
@@ -236,12 +236,19 @@ def predict_img(filepath):
     prepared_img = prepare_img(filepath)
 
     # Load model
-    model = load_model(MODELDIR)
+    model = load_model("{}classifier-CNN.model".format(MODELDIR))
 
     # Predict
-    p = model.predict_classes(prepared_img)
+    p = model.predict(prepared_img)
 
-    print(CATEGORIES[int(p[0][0])])
+    m = max(p[0])
+    maxindex = numpy.where(p[0]==m)[0][0]
+    #maxindex = p[0].index(m)
+
+
+    print(p[0])
+    print(maxindex)
+    print(CATEGORIES[maxindex])
 
 def on_painting_window_motion(event):
     global currently_painting
