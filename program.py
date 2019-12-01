@@ -149,14 +149,14 @@ def train_classifier_nn():
     # Build CNN model
     model = Sequential()
     # Conv2D, 64 filters, 3x3 filter size, same input size as images
-    model.add(Conv2D(64, (3,3), input_shape = feature_set.shape[1:]))
+    model.add(Conv2D(IMG_SIZE, (3,3), input_shape = feature_set.shape[1:]))
     # Activation layer, rectify linear activation
     model.add(Activation("relu"))
     # Pooling layer, max pooling2D
     model.add(MaxPooling2D(pool_size=(2,2)))
 
     # 2nd hidden layer, does not require input shape
-    model.add(Conv2D(64, (3,3)))
+    model.add(Conv2D(IMG_SIZE, (3,3)))
     model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2,2)))
 
@@ -189,12 +189,12 @@ def train_feature_extractor_nn(category):
     # Build CNN model
     model = Sequential()
     # Conv2D, 64 filters, 3x3 filter size, same input size as images
-    model.add(Conv2D(64, (3,3), input_shape = img_set.shape[1:]))
+    model.add(Conv2D(IMG_SIZE, (3,3), input_shape = img_set.shape[1:]))
     model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2,2)))
 
     # 2nd hidden layer, does not require input shape
-    model.add(Conv2D(64, (3,3)))
+    model.add(Conv2D(IMG_SIZE, (3,3)))
     model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2,2)))
 
