@@ -170,6 +170,8 @@ def on_painting_window_motion(event):
             mouse_x_old = mouse_x
             mouse_y_old = mouse_y
 
+        #TODO: painting_mode should be drawing_shape, not drawing_rectangle
+        #TODO: draw the correct shape for the current category
         if painting_mode == "drawing_rectangle":
             painting_frame.clear_rects()
             painting_frame.add_rect(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
@@ -238,6 +240,8 @@ def on_painting_window_return(event):
             x2 = max(placed_rect_xy1[0], placed_rect_xy2[0])
             y1 = min(placed_rect_xy1[1], placed_rect_xy2[1])
             y2 = max(placed_rect_xy1[1], placed_rect_xy2[1])
+            #TODO: Store the current category
+            #TODO: Handling for writing different sets of coordinates depending on the current category
             coords_file = open("dataset/{}.txt".format(data_id), "w")
             coords_file.write("{},{},{},{}".format(x1, y1, x2, y2))
             coords_file.close()
@@ -286,6 +290,7 @@ class PaintingFrame(Frame):
            self.canvas.create_line(line[0], line[1], line[2], line[3], width=PEN_WIDTH)
         for rect in self.rects:
            self.canvas.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline="blue", fill="blue",)
+        #TODO: Draw circles
 
     def add_line(self, x1, y1, x2, y2):
         self.lines.append([x1, y1, x2, y2])
@@ -293,11 +298,15 @@ class PaintingFrame(Frame):
     def add_rect(self, x1, y1, x2, y2):
         self.rects.append([x1, y1, x2, y2])
 
+    #TODO: add_circle
+
     def clear_lines(self):
         self.lines.clear()
 
     def clear_rects(self):
         self.rects.clear()
+
+    #TODO: clear_circle
 
     def take_screenshot(self, file_id):
         global root
