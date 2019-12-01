@@ -151,26 +151,17 @@ def train_classifier_nn():
     # Build CNN model
     model = Sequential()
     # Conv2D, 64 filters, 3x3 filter size, same input size as images
-    model.add(Conv2D(IMG_SIZE, (3,3), input_shape = feature_set.shape[1:]))
+    model.add(Conv2D(2, (3,3), input_shape = feature_set.shape[1:]))
     # Activation layer, rectify linear activation
     model.add(Activation("relu"))
     # Pooling layer, max pooling2D
-    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
-
-    # 2nd hidden layer, does not require input shape
-    model.add(Conv2D(IMG_SIZE, (3,3)))
-    model.add(Activation("relu"))
-    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
+    model.add(MaxPooling2D(pool_size=(3,3), strides=(1,1)))
 
     # Dense layer, requires 1D input so flatten the dataset first
     model.add(Flatten())
-    model.add(Dense(384))
+    model.add(Dense(64))
     model.add(Activation("relu"))
 
-    #2nd dense layer
-    model.add(Dense(192))
-    model.add(Activation("relu"))
-    
     # Output layer, no activation function
     model.add(Dense(num_of_classes))
 
@@ -178,7 +169,7 @@ def train_classifier_nn():
 
     # Fit the model to the training data
     # Note: model will converge nicely after 10 epochs, use that or more in the final program
-    model.fit(feature_set, label_set, batch_size=32, epochs=20, validation_split=0.1)
+    model.fit(feature_set, label_set, batch_size=32, epochs=5, validation_split=0.1)
 
     # Save model
     model.save("{}classifier-CNN.model".format(MODELDIR))
