@@ -155,7 +155,7 @@ def train_classifier_nn():
     # Activation layer, rectify linear activation
     model.add(Activation("relu"))
     # Pooling layer, max pooling2D
-    model.add(MaxPooling2D(pool_size=(3,3), strides=(1,1)))
+    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
 
     # Dense layer, requires 1D input so flatten the dataset first
     model.add(Flatten())
