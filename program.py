@@ -196,21 +196,23 @@ def train_feature_extractor_nn(category):
     # Conv2D, 64 filters, 3x3 filter size, same input size as images
     model.add(Conv2D(IMG_SIZE, (3,3), input_shape = img_set.shape[1:]))
     model.add(Activation("relu"))
-    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
 
     # 2nd hidden layer, does not require input shape
     model.add(Conv2D(IMG_SIZE, (3,3)))
     model.add(Activation("relu"))
-    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
 
     # Dense layer, requires 1D input so flatten the dataset first
     model.add(Flatten())
-    model.add(Dense(64))
-    model.add(Activation("sigmoid"))
+    model.add(Dense(384))
+    model.add(Activation("relu"))
+
+    model.add(Dense(192))
+    model.add(Activation("relu"))
     
     # Output layer
     model.add(Dense(out_nodes_count))
-    model.add(Activation("sigmoid"))
 
     model.compile(loss="mean_squared_error", optimizer="adam", metrics=["accuracy"])
 
