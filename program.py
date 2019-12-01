@@ -72,6 +72,8 @@ def read_and_save_training_data():
 
     print("Read {} images into training data set".format(len(training_data)))
 
+    # TODO: Read coordinates here
+    # TODO: In addition, read each category into a new feature_set, coord_output_set pair
     feature_set = []
     label_set = []
 
@@ -97,6 +99,11 @@ def train_nn():
     label_set = pickle.load(open(LSETDIR, "rb"))
 
     #label_set = to_categorical(label_set)
+
+    #TODO: Break out this nn into a separate funciton, classification_nn.
+    #TODO: New funciton for creation of coord_finder_nns, one for each category
+    #TODO: Train the classification_nn 
+    #TODO: Train the coord_finder_nns
 
     # Scale (normalize) data
     feature_set = feature_set/255.0
