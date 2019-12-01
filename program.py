@@ -17,7 +17,7 @@ FSETDIR = "feature_set.pickle"
 LSETDIR = "label_set.pickle"
 DATADIR = "dataset"
 MODELDIR = "64x3-CNN.model"
-CATEGORIES = ["Rectangle", "Cross"]
+CATEGORIES = ["Rectangle", "Circle"]
 IMG_SIZE = 64
 DEBUG = False
 DEBUG_MAX_IMG_COUNT = 100
@@ -232,7 +232,7 @@ def write_coords():
         # Rectangle
         out_str = "{},{},{},{}".format(x1, y1, x2, y2)
     elif painting_category == CATEGORIES[1]:
-        # Cross
+        # Circle
         out_str = "{},{}".format((x2-x1)/2.0, (y2-y1)/2.0)
 
     placed_rect_xy1 = [-1, -1]
