@@ -141,6 +141,8 @@ def train_classifier_nn():
     feature_set = pickle.load(open(FSETDIR, "rb"))
     label_set = pickle.load(open(LSETDIR, "rb"))
 
+    num_of_classes = len(CATEGORIES)
+
     #label_set = to_categorical(label_set)
 
     # Scale (normalize) data
@@ -153,23 +155,26 @@ def train_classifier_nn():
     # Activation layer, rectify linear activation
     model.add(Activation("relu"))
     # Pooling layer, max pooling2D
-    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
 
     # 2nd hidden layer, does not require input shape
     model.add(Conv2D(IMG_SIZE, (3,3)))
     model.add(Activation("relu"))
-    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
 
     # Dense layer, requires 1D input so flatten the dataset first
     model.add(Flatten())
-    model.add(Dense(64))
-    model.add(Activation("sigmoid"))
-    
-    # Output layer
-    model.add(Dense(1))
-    model.add(Activation("sigmoid"))
+    model.add(Dense(384))
+    model.add(Activation("relu"))
 
-    model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+    #2nd dense layer
+    model.add(Dense(192))
+    model.add(Activation("relu"))
+    
+    # Output layer, no activation function
+    model.add(Dense(num_of_classes))
+
+    model.compile(loss="sparse_categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
     # Fit the model to the training data
     # Note: model will converge nicely after 10 epochs, use that or more in the final program
