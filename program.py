@@ -15,9 +15,9 @@ from tensorflow.keras.utils import to_categorical
 
 FSETDIR = "feature_set.pickle"
 LSETDIR = "label_set.pickle"
-DATADIR = "dataset/PetImages"
+DATADIR = "dataset"
 MODELDIR = "64x3-CNN.model"
-CATEGORIES = ["Dog", "Cat"]
+CATEGORIES = ["Rectangle", "Cross"]
 IMG_SIZE = 64
 DEBUG = False
 DEBUG_MAX_IMG_COUNT = 100
@@ -301,7 +301,7 @@ class PaintingFrame(Frame):
         filepath = "dataset/" + str(file_id) + ".png"
         img.save(filepath)
 
-def painting_prompt():
+def painting_prompt(category):
     global painting_frame
     global root
     root = Tk()
@@ -327,7 +327,13 @@ if len(sys.argv) > 1:
         else:
             print("Argument -v requires a path to an image")
     elif arg == "-d":
-        painting_prompt()
+        if len(sys.argv) > 2:
+            if sys.argv[2] in CATEGORIES:
+                painting_prompt(sys.argv[2])
+            else:
+                print("Argument -d requires a category. Category " + sys.argv[2] + " not recognized.")
+        else:
+            print("Argument -d requires a category.")
     else:
         print("1st argument not recognized")
 else:
