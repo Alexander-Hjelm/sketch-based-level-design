@@ -12,6 +12,8 @@ import tensorflow
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.initializers import glorot_uniform  # Or your initializer of choice
+import tensorflow.keras.backend as keras_backend
 
 FSETDIR = "saved-data-sets/feature_set.pickle"
 LSETDIR = "saved-data-sets/label_set.pickle"
@@ -167,12 +169,35 @@ def train_classifier_nn():
 
     model.compile(loss="sparse_categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
-    # Fit the model to the training data
-    # Note: model will converge nicely after 10 epochs, use that or more in the final program
-    model.fit(feature_set, label_set, batch_size=32, epochs=5, validation_split=0.1)
+    best_accuracy = 0.0
 
-    # Save model
-    model.save("{}classifier-CNN.model".format(MODELDIR))
+    for i in range(0,10):
+
+        # First of all, randomize weights (reinitialize the model)
+        initial_weights = model.get_weights()
+        backend_name = keras_backend.backend()
+        if backend_name == 'tensorflow': 
+            k_eval = lambda placeholder: placeholder.eval(session=keras_backend.get_session())
+        elif backend_name == 'theano': 
+            k_eval = lambda placeholder: placeholder.eval()
+        else: 
+            raise ValueError("Unsupported backend")
+
+        new_weights = [k_eval(glorot_uniform()(w.shape)) for w in initial_weights]
+        model.set_weights(new_weights)
+
+        # Fit the model to the training data
+        # Note: model will converge nicely after 10 epochs, use that or more in the final program
+        result = model.fit(feature_set, label_set, batch_size=32, epochs=15, validation_split=0.1)
+
+        accuracy = result.history["acc"][-1]
+
+        if accuracy > best_accuracy:
+            # Save model if we beat our best accuracy
+            model.save("{}classifier-CNN.model".format(MODELDIR))
+            best_accuracy = accuracy
+
+    print("Save classification model with best accuracy: {}".format(best_accuracy))
 
 def train_feature_extractor_nn(category):
     img_set = pickle.load(open("saved-data-sets/{}_img.pickle".format(category), "rb"))
