@@ -13,8 +13,8 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.utils import to_categorical
 
-FSETDIR = "feature_set.pickle"
-LSETDIR = "label_set.pickle"
+FSETDIR = "saved-data-sets/feature_set.pickle"
+LSETDIR = "saved-data-sets/label_set.pickle"
 DATADIR = "dataset"
 MODELDIR = "64x3-CNN.model"
 CATEGORIES = ["Rectangle", "Circle"]
@@ -54,16 +54,31 @@ def create_training_data():
         class_num = CATEGORIES.index(category)
         img_count = 0
         for img in os.listdir(path):
-            try:
-                filepath = os.path.join(path, img)
-                prepared_img = prepare_img(filepath)
-                training_data.append([prepared_img, class_num])
-                img_count = img_count + 1;
-            except Exception as e:
-                print("Broken image: " + img)
+            if(img.endswith(".png")):
+                print("Read image: " + img)
+                try:
+                    filepath = os.path.join(path, img)
+                    prepared_img = prepare_img(filepath)
 
-            if DEBUG and img_count >= DEBUG_MAX_IMG_COUNT:
-                break
+                    # Read the corresponding .txt file and split the integer coordinates, then read them into training_data
+                    coords_file_path = filepath.split(".")[0] + ".txt"
+                    coords_file = open(coords_file_path, "r")
+                    contents = coords_file.read()
+                    coords_file.close()
+
+                    coords = []
+                    print(contents)
+                    for c in contents.split(","):
+                        coords.append(int(c))
+
+                    training_data.append([prepared_img, class_num, coords])
+                    img_count = img_count + 1;
+                except Exception as e:
+                    print("Broken image, coord pair: " + img)
+                    print(e)
+
+                if DEBUG and img_count >= DEBUG_MAX_IMG_COUNT:
+                    break
 
     return training_data
 
@@ -73,18 +88,32 @@ def read_and_save_training_data():
 
     print("Read {} images into training data set".format(len(training_data)))
 
-    # TODO: Read coordinates here
-    # TODO: In addition, read each category into a new feature_set, coord_output_set pair
     feature_set = []
     label_set = []
 
-    for feature, label in training_data:
+    img_sets = []
+    coordinate_sets = []
+
+    # Initialize the training sets for each feature extractor NN
+    for c in CATEGORIES:
+        coordinate_sets.append([])
+        img_sets.append([])
+
+    for feature, label, coords in training_data:
+        # Store to classifier NN
         feature_set.append(feature)
         label_set.append(label)
+        
+        # Store to the correct feature extractor NN
+        coordinate_sets[label].append
+        img_sets[label].append(feature)
 
     # Conversion of feature set to numpy array, necessary for Keras
     feature_set = numpy.array(feature_set).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+    for img_set in img_sets:
+        img_set = numpy.array(img_set).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
 
+    # Write classifier training data
     pickle_out = open(FSETDIR, "wb")
     pickle.dump(feature_set, pickle_out)
     pickle_out.close()
@@ -92,6 +121,17 @@ def read_and_save_training_data():
     pickle_out = open(LSETDIR, "wb")
     pickle.dump(label_set, pickle_out)
     pickle_out.close()
+
+    # Write feature extractor
+    for i in range(0, len(CATEGORIES)):
+        pickle_out = open("saved-data-sets/{}_img.pickle".format(CATEGORIES[i]), "wb")
+        pickle.dump(img_sets[i], pickle_out)
+        pickle_out.close()
+        
+        pickle_out = open("saved-data-sets/{}_coord.pickle".format(CATEGORIES[i]), "wb")
+        pickle.dump(coordinate_sets[i], pickle_out)
+        pickle_out.close()
+
 
 def train_nn():
     print("Started CNN training procedure on data")
@@ -238,7 +278,7 @@ def write_coords():
         out_str = "{},{},{},{}".format(x1, y1, x2, y2)
     elif painting_category == CATEGORIES[1]:
         # Circle
-        out_str = "{},{}".format((x2-x1)/2.0, (y2-y1)/2.0)
+        out_str = "{},{}".format(x1 + int((x2-x1)/2.0), y1 + int((y2-y1)/2.0))
 
     placed_rect_xy1 = [-1, -1]
     placed_rect_xy2 = [-1, -1]
