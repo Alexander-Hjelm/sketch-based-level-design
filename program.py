@@ -32,6 +32,7 @@ painting_frame = None
 currently_painting = False
 root = None
 painting_mode = "drawing_line"
+painting_category = ""
 placed_rect_xy1 = [-1, -1]
 placed_rect_xy2 = [-1, -1]
 
@@ -213,12 +214,42 @@ def on_painting_window_leave(event):
         painting_frame.redrawUI()
     currently_painting = False
 
+# Return the formatted coordinate string for the current category and placed_rect
+# Also flushes the placed_rect before the next draw iteration
+def write_coords():
+    global painting_category
+    global placed_rect_xy1
+    global placed_rect_xy2
+
+    out_str = ""
+
+    x1 = min(placed_rect_xy1[0], placed_rect_xy2[0])
+    x2 = max(placed_rect_xy1[0], placed_rect_xy2[0])
+    y1 = min(placed_rect_xy1[1], placed_rect_xy2[1])
+    y2 = max(placed_rect_xy1[1], placed_rect_xy2[1])
+
+    if painting_category == CATEGORIES[0]:
+        # Rectangle
+        out_str = "{},{},{},{}".format(x1, y1, x2, y2)
+    elif painting_category == CATEGORIES[1]:
+        # Cross
+        out_str = "{},{}".format((x2-x1)/2.0, (y2-y1)/2.0)
+
+    placed_rect_xy1 = [-1, -1]
+    placed_rect_xy2 = [-1, -1]
+
+    if out_str == "":
+        raise Exception("The category {} was not implemented in write_coords!".format(painting_category))
+
+    return out_str
+
+
 def on_painting_window_return(event):
     global painting_mode
     global painting_frame
     global currently_painting
-    global placed_rect_xy1
-    global placed_rect_xy2
+    global painting_category
+
     if(painting_mode == "drawing_line"):
         print("Painting mode is now rectangle")
         painting_mode = "drawing_rectangle"
@@ -236,14 +267,8 @@ def on_painting_window_return(event):
             # Save data
             data_id = int(round(time.time()*1000))
             # Save rect coords
-            x1 = min(placed_rect_xy1[0], placed_rect_xy2[0])
-            x2 = max(placed_rect_xy1[0], placed_rect_xy2[0])
-            y1 = min(placed_rect_xy1[1], placed_rect_xy2[1])
-            y2 = max(placed_rect_xy1[1], placed_rect_xy2[1])
-            #TODO: Store the current category
-            #TODO: Handling for writing different sets of coordinates depending on the current category
-            coords_file = open("dataset/{}.txt".format(data_id), "w")
-            coords_file.write("{},{},{},{}".format(x1, y1, x2, y2))
+            coords_file = open("dataset/{}/{}.txt".format(painting_category, data_id), "w")
+            coords_file.write(write_coords())
             coords_file.close()
             # Take screenshot
             painting_frame.take_screenshot(data_id)
@@ -252,8 +277,6 @@ def on_painting_window_return(event):
             painting_frame.clear_lines()
             painting_frame.redrawUI()
 
-            placed_rect_xy1 = [-1, -1]
-            placed_rect_xy2 = [-1, -1]
     currently_painting = False
 
 class PaintingFrame(Frame):
@@ -310,16 +333,20 @@ class PaintingFrame(Frame):
 
     def take_screenshot(self, file_id):
         global root
+        global painting_category
 
         self.canvas.update()
 
         img = pyscreenshot.grab(bbox=(root.winfo_x(), root.winfo_y(), root.winfo_x() + root.winfo_width(), root.winfo_y() + root.winfo_height()))
-        filepath = "dataset/" + str(file_id) + ".png"
+        filepath = "dataset/{}/{}.png".format(painting_category, str(file_id))
         img.save(filepath)
 
 def painting_prompt(category):
     global painting_frame
     global root
+    global painting_category
+
+    painting_category = category
     root = Tk()
     painting_frame = PaintingFrame()
     root.geometry("400x250+300+300")
