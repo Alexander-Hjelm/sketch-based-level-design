@@ -156,6 +156,7 @@ def predict_img(filepath):
 def on_painting_window_motion(event):
     global currently_painting
     global painting_mode
+    global painting_category
 
     if currently_painting:
         global mouse_x_old
@@ -171,11 +172,15 @@ def on_painting_window_motion(event):
             mouse_x_old = mouse_x
             mouse_y_old = mouse_y
 
-        #TODO: painting_mode should be drawing_shape, not drawing_rectangle
-        #TODO: draw the correct shape for the current category
-        if painting_mode == "drawing_rectangle":
+        if painting_mode == "drawing_shape":
             painting_frame.clear_rects()
-            painting_frame.add_rect(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
+            painting_frame.clear_circles()
+            if painting_category == "Rectangle":
+                painting_frame.add_rect(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
+            elif painting_category == "Circle":
+                painting_frame.add_circle(mouse_x, mouse_y, mouse_x_old, mouse_y_old)
+            else:
+                raise Exception("The category {} was not implemented in on_painting_window_motion!".format(painting_category))
             painting_frame.redrawUI()
         
 
@@ -192,7 +197,7 @@ def on_painting_window_press(event):
     if painting_mode == "drawing_line":
         painting_frame.clear_lines()
         painting_frame.redrawUI()
-    elif painting_mode == "drawing_rectangle":
+    elif painting_mode == "drawing_shape":
         placed_rect_xy1 = [event.x, event.y]
     currently_painting = True
 
@@ -202,7 +207,7 @@ def on_painting_window_release(event):
     global placed_rect_xy2
 
     currently_painting = False
-    if painting_mode == "drawing_rectangle":
+    if painting_mode == "drawing_shape":
         placed_rect_xy2 = [event.x, event.y]
 
 def on_painting_window_leave(event):
@@ -251,9 +256,9 @@ def on_painting_window_return(event):
     global painting_category
 
     if(painting_mode == "drawing_line"):
-        print("Painting mode is now rectangle")
-        painting_mode = "drawing_rectangle"
-    elif(painting_mode == "drawing_rectangle"):
+        print("Painting mode is now shape")
+        painting_mode = "drawing_shape"
+    elif(painting_mode == "drawing_shape"):
         if(placed_rect_xy1[0] == -1 or placed_rect_xy1[1] == -1 or placed_rect_xy2[0] == -1 or placed_rect_xy2[1] == -1):
             pass
         else:
@@ -262,6 +267,7 @@ def on_painting_window_return(event):
 
             # Clear rects and redraw
             painting_frame.clear_rects()
+            painting_frame.clear_circles()
             painting_frame.redrawUI()
 
             # Save data
@@ -283,6 +289,7 @@ class PaintingFrame(Frame):
 
     lines = []
     rects = []
+    circles = []
     canvas = None
 
     def __init__(self):
@@ -313,7 +320,8 @@ class PaintingFrame(Frame):
            self.canvas.create_line(line[0], line[1], line[2], line[3], width=PEN_WIDTH)
         for rect in self.rects:
            self.canvas.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline="blue", fill="blue",)
-        #TODO: Draw circles
+        for circle in self.circles:
+           self.canvas.create_oval(circle[0], circle[1], circle[2], circle[3], outline="blue", fill="blue",)
 
     def add_line(self, x1, y1, x2, y2):
         self.lines.append([x1, y1, x2, y2])
@@ -321,7 +329,8 @@ class PaintingFrame(Frame):
     def add_rect(self, x1, y1, x2, y2):
         self.rects.append([x1, y1, x2, y2])
 
-    #TODO: add_circle
+    def add_circle(self, x1, y1, x2, y2):
+        self.circles.append([x1, y1, x2, y2])
 
     def clear_lines(self):
         self.lines.clear()
@@ -329,7 +338,8 @@ class PaintingFrame(Frame):
     def clear_rects(self):
         self.rects.clear()
 
-    #TODO: clear_circle
+    def clear_circles(self):
+        self.circles.clear()
 
     def take_screenshot(self, file_id):
         global root
