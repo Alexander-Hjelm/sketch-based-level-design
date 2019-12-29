@@ -270,8 +270,8 @@ def predict_img(filepath):
     p = model_feature_extractor.predict(prepared_img)
     print(p)
 
-    # Return the best category index
-    return(maxindex)
+    # Return the best category
+    return(CATEGORIES[maxindex])
 
 def on_painting_window_motion(event):
     global currently_painting
@@ -499,6 +499,7 @@ def on_sketching_window_return(event):
     #TODO: Save sketch in new file
     painting_frame.clear_rects()
     painting_frame.clear_circles()
+    painting_frame.redrawUI()
 
 def on_sketching_window_release(event):
     global painting_frame
@@ -514,7 +515,16 @@ def on_sketching_window_release(event):
         img.save("temp_predict.png")
 
         # Predict shape
-        category_index = predict_img("temp_predict.png")
+        category = predict_img("temp_predict.png")
+
+        #TODO: Pass along coordinates for both rectangles and squares
+        if category == "Rectangle":
+            painting_frame.add_rect(random.randrange(10), random.randrange(10), 20, 20)
+
+        elif category == "Circle":
+            painting_frame.add_circle(random.randrange(10), random.randrange(10), 20, 20)
+
+        painting_frame.redrawUI()
 
         # Delete the temporary image file
         os.remove("temp_predict.png")
