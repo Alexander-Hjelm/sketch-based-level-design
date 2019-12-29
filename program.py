@@ -270,6 +270,9 @@ def predict_img(filepath):
     p = model_feature_extractor.predict(prepared_img)
     print(p)
 
+    # Return the best category index
+    return(maxindex)
+
 def on_painting_window_motion(event):
     global currently_painting
     global painting_mode
@@ -394,7 +397,7 @@ def on_painting_window_return(event):
             coords_file.write(write_coords())
             coords_file.close()
             # Take screenshot
-            painting_frame.take_screenshot(data_id)
+            painting_frame.take_screenshot_and_save(data_id)
 
             # Clear lines and redraw
             painting_frame.clear_lines()
@@ -458,13 +461,18 @@ class PaintingFrame(Frame):
     def clear_circles(self):
         self.circles.clear()
 
-    def take_screenshot(self, file_id):
+    def take_screenshot(self):
         global root
-        global painting_category
 
         self.canvas.update()
-
         img = pyscreenshot.grab(bbox=(root.winfo_x(), root.winfo_y(), root.winfo_x() + root.winfo_width(), root.winfo_y() + root.winfo_height()))
+        return img
+
+    def take_screenshot_and_save(self, file_id):
+        global painting_category
+
+        img = take_screenshot()
+
         filepath = "dataset/{}/{}.png".format(painting_category, str(file_id))
         img.save(filepath)
 
@@ -483,6 +491,46 @@ def painting_prompt(category):
 
     #c = Canvas(width=IMG_SIZE, height=IMG_SIZE)
     #c.pack(fill=BOTH, expand=True)
+
+def on_sketching_window_return(event):
+    global painting_frame
+
+    print("Saving sketch as new map...")
+    #TODO: Save sketch in new file
+    painting_frame.clear_rects()
+    painting_frame.clear_circles()
+
+def on_sketching_window_release(event):
+    global painting_frame
+
+    mouse_x = event.x
+    mouse_y = event.y
+
+    if mouse_x > 0 and mouse_y > 0 and mouse_x < root.winfo_width() and mouse_y < root.winfo_height():
+        print("Determining shape...")
+        img = painting_frame.take_screenshot()
+
+        # Save img temporarily
+        img.save("temp_predict.png")
+
+        # Predict shape
+        category_index = predict_img("temp_predict.png")
+
+        # Delete the temporary image file
+        os.remove("temp_predict.png")
+
+def start_sketch_prompt():
+    global painting_frame
+    global root
+
+    root = Tk()
+    painting_frame = PaintingFrame()
+    root.geometry("400x250+300+300")
+    root.attributes('-type', 'dialog')
+    root.bind("<Return>", on_sketching_window_return)
+    root.bind("<ButtonRelease-1>", on_sketching_window_release)
+    root.mainloop()
+
 
 # MAIN PROGRAM
 if len(sys.argv) > 1:
@@ -507,6 +555,7 @@ if len(sys.argv) > 1:
     else:
         print("1st argument not recognized")
 else:
-    print("No argument supplied!")
+    print("No argument supplied. Running main program")
+    start_sketch_prompt()
 
 print("Program terminated successfully")
