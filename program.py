@@ -9,6 +9,7 @@ import cv2
 import random
 import pickle
 import tensorflow
+import json
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.utils import to_categorical
@@ -497,6 +498,23 @@ def on_sketching_window_return(event):
 
     print("Saving sketch as new map...")
     #TODO: Save sketch in new file
+    shapes_dict = {}
+
+    c = 0
+    for rect in painting_frame.rects:
+        shapes_dict["rect_{}".format(c)] = rect
+        c = c+1
+
+    c = 0
+    for circle in painting_frame.circles:
+        shapes_dict["circle_{}".format(c)] = circle
+        c = c+1
+
+    with open('map.json', 'w') as json_file:
+        json.dump(shapes_dict, json_file)
+
+
+    # Clear the window and redraw
     painting_frame.clear_rects()
     painting_frame.clear_circles()
     painting_frame.redrawUI()
