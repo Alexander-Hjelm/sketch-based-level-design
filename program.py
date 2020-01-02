@@ -44,8 +44,8 @@ print("==================")
 def prepare_img(filepath):
     img_array = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
     resized_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
-    #pyplot.imshow(resized_array, cmap="gray")
-    #pyplot.show()
+    pyplot.imshow(resized_array, cmap="gray")
+    pyplot.show()
     reshaped_array = resized_array.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
     return reshaped_array
 
@@ -436,13 +436,16 @@ class PaintingFrame(Frame):
         self.canvas.pack(fill=BOTH, expand=1)
     
     def redrawUI(self):
-        self.canvas.delete("all")
-        for line in self.lines:
-           self.canvas.create_line(line[0], line[1], line[2], line[3], width=PEN_WIDTH)
+        self.redrawUI_lines_only()
         for rect in self.rects:
            self.canvas.create_rectangle(rect[0], rect[1], rect[2], rect[3], outline="blue", fill="blue",)
         for circle in self.circles:
            self.canvas.create_oval(circle[0], circle[1], circle[2], circle[3], outline="blue", fill="blue",)
+
+    def redrawUI_lines_only(self):
+        self.canvas.delete("all")
+        for line in self.lines:
+           self.canvas.create_line(line[0], line[1], line[2], line[3], width=PEN_WIDTH)
 
     def add_line(self, x1, y1, x2, y2):
         self.lines.append([x1, y1, x2, y2])
@@ -472,7 +475,7 @@ class PaintingFrame(Frame):
     def take_screenshot_and_save(self, file_id):
         global painting_category
 
-        img = take_screenshot()
+        img = self.take_screenshot()
 
         filepath = "dataset/{}/{}.png".format(painting_category, str(file_id))
         img.save(filepath)
@@ -527,7 +530,12 @@ def on_sketching_window_release(event):
 
     if mouse_x > 0 and mouse_y > 0 and mouse_x < root.winfo_width() and mouse_y < root.winfo_height():
         print("Determining shape...")
+
+        painting_frame.redrawUI_lines_only()
         img = painting_frame.take_screenshot()
+
+
+        print("Saved image")
 
         # Save img temporarily
         img.save("temp_predict.png")
