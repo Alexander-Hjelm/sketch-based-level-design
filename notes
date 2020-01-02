@@ -1,0 +1,102 @@
+Suggesions from Mario:
+ - Use space syntax or #shape instances as input along with the sketch
+ - Continue with 2 classes for now
+ - How do you go from a composite, non-terminal floor plan sketch to a 3d representation?
+ - The input could be an adjencency matrix (click the rooms to form connections)
+ - Make a presentation for January 6th
+ - Make a demo script for next week
+
+suggestions
+- batch normalize the input data
+- 1-hot-encoding of the output data
+harshahn@kth.se
+
+[X] Expand existing drawing program to facilitate drawing crosses with specificed center coordinates
+[X] Read input  data to the classifier network (iterate over all categories, create the output list (e.g. {1,0,0,0}, {0,1,0,0} etc for 4 categories)
+[X] Store the number of data sets (categories) and train a network for each, with specified number of output nodes
+[X] Apply new image classification network and break out the number of categories
+[X] Make a command that trains all the networks
+
+[X] Train NN funciton, swap 64 to IMG_SIZE
+[X] Examine resized image in prepare_img(), check that the features are still visible
+[X] Implement correct classifier NN
+[X] Implement correct feature extractor NNs
+[X] Remake classifier NN to output N categories, not just bilinear
+[ ] Make sure that output training data to the feature extractor NNs have the correct format
+
+[ ] Make a fuckton of data
+[ ] Sample drawing application that lets the user draw and outputs the class, as well as coordinates depending on what class is identified
+
+[ ] Make a final drawing application that lets the user draw, saves a png, feeds it to the classification network and then to the correct coordinate extractor network. Then paints the correct shape in the picture
+[ ] Store the final level as a file
+
+OBJECT DETECTION
+================
+
+1. Selective Search for image proposals (NOT NECCESSARY)
+    https://www.learnopencv.com/selective-search-for-object-detection-cpp-python/
+    Should be enough to just create the bounding box from the colored pixels in our case
+2. Apply our CNN to classify the object
+    Revert back to the network in the tutorial
+    Is there a better network for analysing sketches in particular?
+        https://github.com/AlbertZheng/quickdraw-cnn/blob/master/quickdraw_cnn.py
+        Simple model with 2 hidden layers, flatten, 2 dense layers and 1 dense output layer should do!
+    The image proposals will have different sizes. What to do about this?
+        Don't do anything for now. Just try with the unbounded images
+    Change the output of the CNN to handle more than 2 categories
+        In the model.compile, use loss = categorical_grossentropy
+        The final dense layer must have NUMBER_OF_CATEGORIES nodes, not 1
+        https://medium.com/predict/object-classification-from-scratch-using-tensorflow-and-keras-964e42e898b2
+3. Extract coordinates from an image
+    Selective coordinate mappings depending on the shape? (cross center vs box corners)
+    https://stackoverflow.com/questions/44259578/faster-rcnn-how-to-translate-coordinates
+    https://stackoverflow.com/questions/45528285/cnn-image-recognition-with-regression-output-on-tensorflow
+    https://navoshta.com/end-to-end-deep-learning/
+    ^ This
+    A CNN Without an activation function in the end, but simply a number of hidden layers and a number of fully connected output layers
+    This will create a network that solves a regression problem instead of a classification problem
+    Use a CNN for classification and one for each detected shape, trained specifically for that shape
+4. Profit!
+
+================
+
+=============
+
+[ ] AvÄmn, research om CNN för image classification och sketch based systems
+[ ] Avämn: Rutin för att skapa träningsdata
+    [ ] Querya efter rektangel, dragga och droppa hörnen (0,0), (1,1)
+    [ ] Querya efter sketch som matchar rektangeln
+    [ ] Spara träningsdata till fil
+    [ ] Querya efter en sketch som inte ska matcha en rektangel
+[X] Avämn: Rutin för att ladda in träningsdata från fil
+    [X] Shuffla ordningen som träningsdata ligger i
+[ ] AvÄmn, Bild som input till NN
+https://github.com/val-iisc/sketch-object-recognition/blob/master/models/eitz/160/CNN/SketchCNN/sketchcnn_theano.py
+
+==============
+
+[ ] Avämn: CNN struktur: input -> (conv -> max pool) -> Fully connected
+    [ ] Network output: Box X, Y, Center
+    https://pythonprogramming.net/convolutional-neural-network-cnn-machine-learning-tutorial/
+    [ ] Convolve: Moving window filter for looking for features. break image down by pixel
+        [ ] Each window maps to a cell in the pooling layer
+        [ ] window step size in X and Y is variable
+        [ ] Learns the optimal features itself
+        [ ] Uses dot product for each filter
+        https://wiseodd.github.io/techblog/2016/07/16/convnet-conv-layer/
+        http://neuroph.sourceforge.net/javadoc/org/neuroph/nnet/comp/layer/ConvolutionalLayer.html
+    [ ] Pooling: Simplifying
+        [ ] Reduces the dimension of the data
+        [ ] Max pool: pick out the max value in a sliding window.
+        [ ] to start with: use step size 2 and 2x2 pooling
+        https://wiseodd.github.io/techblog/2016/07/18/convnet-maxpool-layer/
+        http://neuroph.sourceforge.net/javadoc/org/neuroph/nnet/comp/layer/PoolingLayer.html
+    [ ] Fully connected layer at the end
+    [ ] input layer size: number of pixels^2
+        [ ] Send in the pixels as input data to the first conv layer
+    [ ] Maybe some resizing preprocessing is required
+
+Använd följande struktur:
+
+Input -> Convolution layers (börja med få feature filters, liten storlek, sen prova vad som ger minst error) -> Pooling layer (2x2 pooling, stride 2) -> Fully connected layer till output features
+
