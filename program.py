@@ -154,10 +154,14 @@ def train_classifier_nn():
     # Build CNN model
     model = Sequential()
     # Conv2D, 64 filters, 3x3 filter size, same input size as images
-    model.add(Conv2D(2, (3,3), input_shape = feature_set.shape[1:]))
+    model.add(Conv2D(4, (3,3), input_shape = feature_set.shape[1:]))
     # Activation layer, rectify linear activation
     model.add(Activation("relu"))
     # Pooling layer, max pooling2D
+    model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
+
+    model.add(Conv2D(4, (3,3), input_shape = feature_set.shape[1:]))
+    model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
 
     # Dense layer, requires 1D input so flatten the dataset first
